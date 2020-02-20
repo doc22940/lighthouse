@@ -38,7 +38,8 @@ class UnusedJavaScript extends ByteEfficiencyAudit {
       title: str_(UIStrings.title),
       description: str_(UIStrings.description),
       scoreDisplayMode: ByteEfficiencyAudit.SCORING_MODES.NUMERIC,
-      requiredArtifacts: ['JsUsage', 'SourceMaps', 'ScriptElements', 'devtoolsLogs', 'traces'],
+      requiredArtifacts: ['JsUsage', 'ScriptElements', 'devtoolsLogs', 'traces'],
+      __internalOptionalArtifacts: ['SourceMaps'],
     };
   }
 
@@ -82,8 +83,9 @@ class UnusedJavaScript extends ByteEfficiencyAudit {
    * @param {WasteData[]} wasteData
    * @param {LH.Artifacts.Bundle} bundle
    * @param {ReturnType<typeof UnusedJavaScript.determineLengths>} lengths
+   * @param {number} bundleSourceUnusedThreshold
    */
-  static createBundleMultiData(item, wasteData, bundle, lengths) {
+  static createBundleMultiData(item, wasteData, bundle, lengths, bundleSourceUnusedThreshold) {
     if (!bundle.script.content) return;
 
     /** @type {Record<string, number>} */
@@ -108,8 +110,8 @@ class UnusedJavaScript extends ByteEfficiencyAudit {
         (mapping.lastColumnNumber - 1) || lineLengths[mapping.lineNumber];
       for (let i = mapping.columnNumber; i <= lastColumnOfMapping; i++) {
         if (wasteData.every(data => data.unusedByIndex[offset] === 1)) {
-          // @ts-ignore
-          files[mapping.sourceURL] = (files[mapping.sourceURL] || 0) + 1;
+          const key = mapping.sourceURL || '(unmapped)';
+          files[key] = (files[key] || 0) + 1;
         }
         offset += 1;
       }
@@ -117,14 +119,15 @@ class UnusedJavaScript extends ByteEfficiencyAudit {
 
     const transferRatio = lengths.transfer / lengths.content;
     const topUnusedFilesSizes = Object.entries(files)
-      .filter(([_, unusedBytes]) => unusedBytes * transferRatio >= 1024)
+      .filter(([_, unusedBytes]) => unusedBytes * transferRatio >= bundleSourceUnusedThreshold)
       .sort(([_, unusedBytes1], [__, unusedBytes2]) => unusedBytes2 - unusedBytes1)
       .slice(0, 5)
       .map(([key, unusedBytes]) => {
+        const total = key === '(unmapped)' ? bundle.sizes.unmappedBytes : bundle.sizes.files[key];
         return {
           key,
           unused: Math.round(unusedBytes * transferRatio),
-          total: Math.round(bundle.sizes.files[key] * transferRatio),
+          total: Math.round(total * transferRatio),
         };
       });
 
@@ -191,7 +194,8 @@ class UnusedJavaScript extends ByteEfficiencyAudit {
    * @return {Promise<ByteEfficiencyAudit.ByteEfficiencyProduct>}
    */
   static async audit_(artifacts, networkRecords, context) {
-    const bundles = await JSBundles.request(artifacts, context);
+    const bundles = artifacts.SourceMaps ? await JSBundles.request(artifacts, context) : [];
+    const {bundleSourceUnusedThreshold = 1024} = context.options || {};
 
     /** @type {Map<string, Array<LH.Crdp.Profiler.ScriptCoverage>>} */
     const scriptsByUrl = new Map();
@@ -211,7 +215,8 @@ class UnusedJavaScript extends ByteEfficiencyAudit {
       const item = UnusedJavaScript.mergeWaste(wasteData, networkRecord.url, lengths);
       if (item.wastedBytes <= IGNORE_THRESHOLD_IN_BYTES) continue;
       if (bundle) {
-        UnusedJavaScript.createBundleMultiData(item, wasteData, bundle, lengths);
+        UnusedJavaScript.createBundleMultiData(
+          item, wasteData, bundle, lengths, bundleSourceUnusedThreshold);
       }
       items.push(item);
     }
