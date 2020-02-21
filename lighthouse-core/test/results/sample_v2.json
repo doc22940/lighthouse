@@ -555,6 +555,26 @@
         ]
       }
     },
+    "maskable-icon": {
+      "id": "maskable-icon",
+      "title": "Manifest doesn't have a maskable icon",
+      "description": "A maskable icon ensures that the icon fills the entire shape when installing the app on a device. [Learn more](https://web.dev/maskable-icon/).",
+      "score": 0,
+      "scoreDisplayMode": "binary",
+      "explanation": "Failures: No manifest was fetched.",
+      "details": {
+        "type": "debugdata",
+        "items": [
+          {
+            "failures": [
+              "No manifest was fetched"
+            ],
+            "isParseFailure": true,
+            "parseFailureReason": "No manifest was fetched"
+          }
+        ]
+      }
+    },
     "content-width": {
       "id": "content-width",
       "title": "Content is sized correctly for the viewport",
@@ -4293,6 +4313,11 @@
           "group": "pwa-optimized"
         },
         {
+          "id": "maskable-icon",
+          "weight": 1,
+          "group": "pwa-optimized"
+        },
+        {
           "id": "pwa-cross-browser",
           "weight": 0
         },
@@ -4306,7 +4331,7 @@
         }
       ],
       "id": "pwa",
-      "score": 0.41
+      "score": 0.39
     }
   },
   "categoryGroups": {
@@ -4732,6 +4757,12 @@
       {
         "startTime": 0,
         "name": "lh:computed:ManifestValues",
+        "duration": 100,
+        "entryType": "measure"
+      },
+      {
+        "startTime": 0,
+        "name": "lh:audit:maskable-icon",
         "duration": 100,
         "entryType": "measure"
       },
@@ -5778,6 +5809,12 @@
       ],
       "lighthouse-core/audits/themed-omnibox.js | description": [
         "audits[themed-omnibox].description"
+      ],
+      "lighthouse-core/audits/maskable-icon.js | failureTitle": [
+        "audits[maskable-icon].title"
+      ],
+      "lighthouse-core/audits/maskable-icon.js | description": [
+        "audits[maskable-icon].description"
       ],
       "lighthouse-core/audits/content-width.js | title": [
         "audits[content-width].title"
