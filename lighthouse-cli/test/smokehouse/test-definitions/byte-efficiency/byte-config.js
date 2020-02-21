@@ -5,14 +5,12 @@
  */
 'use strict';
 
-const experimentalConfig = require('../../../../../lighthouse-core/config/experimental-config.js');
-
 /**
  * @type {LH.Config.Json}
  * Config file for running byte efficiency smokehouse audits.
  */
 const config = {
-  ...experimentalConfig,
+  extends: 'lighthouse:default',
   settings: {
     onlyAudits: [
       'accesskeys', // run axe on the page since we've had problems with interactions
@@ -29,6 +27,13 @@ const config = {
     ],
     throttlingMethod: 'devtools',
   },
+  // source-maps is not yet in the default config.
+  passes: [{
+    passName: 'defaultPass',
+    gatherers: [
+      'source-maps',
+    ],
+  }],
 };
 
 module.exports = config;
