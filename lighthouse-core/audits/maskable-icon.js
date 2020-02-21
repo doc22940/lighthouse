@@ -24,7 +24,7 @@ const str_ = i18n.createMessageInstanceIdFn(__filename, UIStrings);
 /**
  * @fileoverview
  * Audits if a manifest contains at least one icon that is maskable
- * 
+ *
  * Requirements:
  *    * manifest is not empty
  *    * manifest has valid icons
@@ -55,8 +55,7 @@ class MaskableIcon extends Audit {
     if (manifestValues.isParseFailure) {
       return {
         score: 0,
-
-      }
+      };
     }
     const maskableIconCheck = manifestValues.allChecks.find(i => i.id === 'hasMaskableIcon');
     return {

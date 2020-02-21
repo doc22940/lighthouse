@@ -37,7 +37,7 @@ function generateMockAuditContext() {
 describe('Maskable Icon Audit', () => {
   const context = generateMockAuditContext();
 
-  it('fails when the manifest fails to be parsed', async() => {
+  it('fails when the manifest fails to be parsed', async () => {
     const artifacts = generateMockArtifacts();
     artifacts.WebAppManifest = null;
 
@@ -45,14 +45,14 @@ describe('Maskable Icon Audit', () => {
     assert.equal(auditResult.score, 0);
   });
 
-  it('fails when the manifest contains no maskable icons', async() => {
+  it('fails when the manifest contains no maskable icons', async () => {
     const artifacts = generateMockArtifacts();
 
     const auditResult = await MaskableIconAudit.audit(artifacts, context);
     assert.equal(auditResult.score, 0);
   });
 
-  it('passes when the manifest contains at least one maskable icon', async() => {
+  it('passes when the manifest contains at least one maskable icon', async () => {
     const artifacts = generateMockArtifacts(manifestWithMaskableSrc);
 
     const auditResult = await MaskableIconAudit.audit(artifacts, context);
