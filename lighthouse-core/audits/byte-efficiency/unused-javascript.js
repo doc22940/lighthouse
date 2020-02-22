@@ -20,6 +20,7 @@ const UIStrings = {
 const str_ = i18n.createMessageInstanceIdFn(__filename, UIStrings);
 
 const IGNORE_THRESHOLD_IN_BYTES = 2048;
+const IGNORE_BUNDLE_SOURCE_THRESHOLD_IN_BYTES = 512; 
 
 /**
  * @typedef WasteData
@@ -195,7 +196,8 @@ class UnusedJavaScript extends ByteEfficiencyAudit {
    */
   static async audit_(artifacts, networkRecords, context) {
     const bundles = artifacts.SourceMaps ? await JSBundles.request(artifacts, context) : [];
-    const {bundleSourceUnusedThreshold = 1024} = context.options || {};
+    const {bundleSourceUnusedThreshold = IGNORE_BUNDLE_SOURCE_THRESHOLD_IN_BYTES} =
+      context.options || {};
 
     /** @type {Map<string, Array<LH.Crdp.Profiler.ScriptCoverage>>} */
     const scriptsByUrl = new Map();
