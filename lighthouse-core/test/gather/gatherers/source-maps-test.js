@@ -123,6 +123,20 @@ describe('SourceMaps gatherer', () => {
     ]);
   });
 
+  it('trims common prefix in map.sources', async () => {
+    const mapsAndEvents = [
+      {
+        scriptParsedEvent: {
+          url: 'http://www.example.com/bundle.js',
+          sourceMapURL: 'http://www.example.com/bundle.js.map',
+        },
+        map: JSON.stringify({sources: ['i-am-goat.js', 'i-am-sheep.js', 'i-am-snake.js']}),
+      },
+    ];
+    const artifact = await runSourceMaps(mapsAndEvents);
+    expect(artifact[0].map.sources).toEqual(['…goat.js', '…sheep.js', '…snake.js']);
+  });
+
   it('fetches map for script with relative source map url', async () => {
     const mapsAndEvents = [
       {

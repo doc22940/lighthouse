@@ -11,6 +11,23 @@ const Gatherer = require('./gatherer.js');
 const URL = require('../../lib/url-shim.js');
 
 /**
+ * @param {string[]} strings
+ */
+function commonPrefix(strings) {
+  if (!strings.length) {
+    return '';
+  }
+
+  const maxWord = strings.reduce((a, b) => a > b ? a : b);
+  let prefix = strings.reduce((a, b) => a > b ? b : a);
+  while (!maxWord.startsWith(prefix)) {
+    prefix = prefix.slice(0, -1);
+  }
+
+  return prefix;
+}
+
+/**
  * This function fetches source maps; it is careful not to parse the response as JSON, as it will
  * just need to be serialized again over the protocol, and source maps can
  * be huge.
@@ -145,6 +162,20 @@ class SourceMaps extends Gatherer {
   }
 
   /**
+   * @param {LH.Artifacts.SourceMap} SourceMap
+   */
+  trimCommonPrefix(SourceMap) {
+    if (!SourceMap.map) return;
+
+    const prefix = commonPrefix(SourceMap.map.sources);
+    if (!prefix) return;
+
+    for (let i = 0; i < SourceMap.map.sources.length; i++) {
+      SourceMap.map.sources[i] = '…' + SourceMap.map.sources[i].slice(prefix.length);
+    }
+  }
+
+  /**
    * @param {LH.Gatherer.PassContext} passContext
    * @return {Promise<LH.Artifacts['SourceMaps']>}
    */
@@ -157,7 +188,9 @@ class SourceMaps extends Gatherer {
     const eventProcessPromises = this._scriptParsedEvents
       .map((event) => this._retrieveMapFromScriptParsedEvent(driver, event));
 
-    return Promise.all(eventProcessPromises);
+    const results = await Promise.all(eventProcessPromises);
+    results.forEach(this.trimCommonPrefix);
+    return results;
   }
 }
 
