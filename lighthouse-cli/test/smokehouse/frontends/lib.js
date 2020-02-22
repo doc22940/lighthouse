@@ -13,42 +13,9 @@
 
 /* eslint-disable no-console */
 
+const cloneDeep = require('lodash.clonedeep');
 const smokeTests = require('../test-definitions/core-tests.js');
 const {runSmokehouse} = require('../smokehouse.js');
-
-/**
- * JSON.parse(JSON.stringify(object)), but persists RegExps too.
- * @param {*} object
- */
-function deepCopy(object) {
-  /**
-   * @param {string} _
-   * @param {*} value
-   */
-  function replacer(_, value) {
-    if (value instanceof RegExp) {
-      return ('__REGEXP ' + value.toString());
-    } else {
-      return value;
-    }
-  }
-
-  /**
-   * @param {string} _
-   * @param {*} value
-   */
-  function reviver(_, value) {
-    if (typeof value === 'string' && value.startsWith('__REGEXP ')) {
-      const m = value.split('__REGEXP ')[1].match(/\/(.*)\/(.*)?/);
-      if (!m) return value;
-      return new RegExp(m[1], m[2] || '');
-    } else {
-      return value;
-    }
-  }
-
-  return JSON.parse(JSON.stringify(object, replacer), reviver);
-}
 
 /**
  * @param {Smokehouse.SmokehouseLibOptions} options
@@ -56,8 +23,7 @@ function deepCopy(object) {
 async function smokehouse(options) {
   const {urlFilterRegex, skip, modify, ...smokehouseOptions} = options;
 
-  /** @type {Smokehouse.TestDfn[]} */
-  const clonedTests = deepCopy(smokeTests);
+  const clonedTests = cloneDeep(smokeTests);
   const modifiedTests = clonedTests.map(test => {
     const modifiedExpectations = [];
     for (const expected of test.expectations) {
